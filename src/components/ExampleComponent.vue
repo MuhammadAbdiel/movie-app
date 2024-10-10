@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <p>{{ title }}</p>
+  <div class="column items-center">
+    <p class="heading-one">{{ title }}</p>
     <ul>
-      <li v-for="todo in todos" :key="todo.id" @click="increment">
+      <li v-for="todo in todos" :key="todo.id" @click="increment" class="cursor-pointer">
         {{ todo.id }} - {{ todo.content }}
       </li>
     </ul>

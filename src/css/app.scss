@@ -1,1 +1,46 @@
 // app global css in SCSS form
+* {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.heading-one {
+  font-weight: 600;
+  font-size: 64px;
+  line-height: 80px;
+  letter-spacing: 0%;
+}
+
+.heading-two {
+  font-weight: 600;
+  font-size: 48px;
+  line-height: 56px;
+  letter-spacing: 0%;
+}
+
+.heading-three {
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: 0%;
+}
+
+.heading-four {
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: 0%;
+}
+
+.heading-five {
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 24px;
+  letter-spacing: 0%;
+}
+
+.heading-six {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0%;
+}
