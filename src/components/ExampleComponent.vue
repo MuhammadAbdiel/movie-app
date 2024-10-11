@@ -9,6 +9,7 @@
     <p>Count: {{ todoCount }} / {{ meta.totalCount }}</p>
     <p>Active: {{ active ? 'yes' : 'no' }}</p>
     <p>Clicks on todos: {{ clickCount }}</p>
+    <q-btn class="q-mt-xl" color="blue" text-color="white" unelevated to="/movie/login" label="Sign In" no-caps />
   </div>
 </template>
 
