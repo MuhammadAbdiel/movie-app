@@ -1,32 +1,21 @@
 <template>
-  <q-page class="row justify-center items-center full-width q-px-xl q-py-xl">
+  <q-page class="justify-center items-center full-width q-px-xl q-py-xl">
     <div v-if="loading == false">
       <div v-if="movieStore.movies.length > 0">
         <div class="row justify-between items-center q-mb-xl">
           <div class="flex justify-start items-center">
             <span :class="headingClass" class="text-white q-mr-md">{{ $t('myMovies') }}</span>
-            <img @click="toAddMovie" class="cursor-pointer" src="../../public/images/add.png" alt="add"
-              :width="imageWidth" :height="imageHeight">
+            <img @click="toAddMovie" class="cursor-pointer" src="/images/add.png" alt="add" :width="imageWidth"
+              :height="imageHeight">
           </div>
-          <div @click="logout" class="flex justify-start items-center cursor-pointer">
+          <div @click.stop="logout" class="flex justify-start items-center cursor-pointer">
             <span :class="logoutText" class="body-regular text-white q-mr-md">{{ $t('logout') }}</span>
-            <img src="../../public/images/logout.png" alt="logout" :width="imageWidth" :height="imageHeight">
+            <img src="/images/logout.png" alt="logout" :width="imageWidth" :height="imageHeight">
           </div>
         </div>
 
         <div class="row justify-center q-gutter-lg">
-          <q-card v-for="movie in movieStore.movies" :key="movie.id"
-            class="col-lg-3 col-md-6 col-sm-12 movie-card text-white">
-            <div class="q-pa-md">
-              <q-img width="265" height="400" class="rounded-borders"
-                :src="movie.poster || 'https://picsum.photos/200/300'" :alt="movie.title"></q-img>
-            </div>
-
-            <q-card-section>
-              <div class="body-large">{{ movie.title }}</div>
-              <div class="body-small">{{ movie.publishingYear }}</div>
-            </q-card-section>
-          </q-card>
+          <card-component v-for="movie in movieStore.movies" :key="movie.id" :movie="movie" @edit-movie="toEditMovie" />
         </div>
 
         <div class="pagination-controls q-mt-xl q-pt-xl">
@@ -60,12 +49,16 @@ import { useQuasar } from 'quasar';
 import { useAuthStore } from 'src/stores/auth-store';
 import { useMovieStore } from 'src/stores/movie-store';
 import { computed } from 'vue';
+import CardComponent from 'src/components/CardComponent.vue';
 
 export default {
   name: 'MoviesPage',
+  components: {
+    CardComponent
+  },
   data() {
     return {
-      loading: false
+      loading: false,
     }
   },
   setup() {
@@ -137,9 +130,16 @@ export default {
     toAddMovie() {
       this.$router.push({ name: 'add' });
     },
+    toEditMovie(id: number) {
+      this.$router.push({ name: 'edit', params: { id } });
+    },
     logout() {
       this.authStore.clearAuth();
       this.$router.push({ name: 'login' });
+
+      this.$nextTick(() => {
+        window.location.reload();
+      });
     }
   },
   mounted() {
@@ -157,6 +157,11 @@ export default {
   background-color: $card;
   max-width: 280px;
   min-width: 265px;
+}
+
+.movie-card:hover {
+  transition: all 0.3s ease-in-out;
+  background-color: $hover-card;
 }
 
 .pagination-controls {

@@ -1,17 +1,17 @@
 <template>
   <q-page class="row full-width q-px-xl q-py-xl">
     <div class="col">
-      <span :class="headingClass" class="text-white q-mr-md">{{ $t('createNewMovie') }}</span>
+      <span :class="headingClass" class="text-white q-mr-md">{{ $t('edit') }}</span>
 
       <div v-if="$q.screen.lt.md">
-        <q-form @submit="onSubmit" @reset="onReset" ref="form" class="q-mt-md q-pt-md text-white">
+        <q-form @submit="onUpdate" @reset="onReset" ref="form" class="q-mt-md q-pt-md text-white">
           <input-component :label="$t('title')" v-model="form.title" :rules="[validateTitle]" :type="'text'" />
 
           <input-component :label="$t('publishingYear')" v-model="form.publishingYear" :rules="[validatePublishingYear]"
             :type="'number'" />
 
           <q-file :rules="[validatePoster]" class="file-uploader cursor-pointer" v-model="form.poster" fill
-            :label="$t('dropImage')" label-color="white" square borderless dark use-chips>
+            :label="$t('dropOtherImage')" label-color="white" square borderless dark use-chips>
             <template v-slot:append>
               <q-icon name="download" size="md" class="text-white" />
             </template>
@@ -20,15 +20,15 @@
           <div class="row q-gutter-md q-pt-xl">
             <button-component @click="navigateToMoviesPage" :type="'button'" :color="'transparent'"
               :class="'col q-px-xl q-py-md cancel-button'" :label="$t('cancel')" />
-            <button-component :class="'col q-px-xl q-py-md'" :loading="loading" :label="$t('submit')" />
+            <button-component :class="'col q-px-xl q-py-md'" :loading="loading" :label="$t('update')" />
           </div>
         </q-form>
       </div>
       <div v-else>
-        <q-form @submit="onSubmit" @reset="onReset" ref="form" class="row q-gutter-xl q-mt-md q-pt-md text-white">
+        <q-form @submit="onUpdate" @reset="onReset" ref="form" class="row q-gutter-xl q-mt-md q-pt-md text-white">
           <div class="col-md-4 q-mr-xl">
             <q-file :rules="[validatePoster]" class="file-uploader cursor-pointer" v-model="form.poster" fill
-              :label="$t('dropImage')" label-color="white" square borderless dark use-chips>
+              :label="$t('dropOtherImage')" label-color="white" square borderless dark use-chips>
               <template v-slot:append>
                 <q-icon name="download" size="md" class="text-white" />
               </template>
@@ -43,7 +43,7 @@
             <div class="flex q-gutter-md q-pt-xl">
               <button-component @click="navigateToMoviesPage" :type="'button'" :color="'transparent'"
                 :class="'col q-px-xl q-py-md cancel-button'" :label="$t('cancel')" />
-              <button-component :class="'col q-px-xl q-py-md'" :loading="loading" :label="$t('submit')" />
+              <button-component :class="'col q-px-xl q-py-md'" :loading="loading" :label="$t('update')" />
             </div>
           </div>
         </q-form>
@@ -55,12 +55,13 @@
 <script lang="ts">
 import { useQuasar } from 'quasar';
 import { useAuthStore } from 'src/stores/auth-store';
+import { useMovieStore } from 'src/stores/movie-store';
 import { useI18n } from 'vue-i18n';
 import ButtonComponent from '../components/ButtonComponent.vue';
 import InputComponent from 'src/components/InputComponent.vue';
 
 export default {
-  name: 'AddMoviePage',
+  name: 'EditMoviePage',
   components: {
     ButtonComponent,
     InputComponent
@@ -72,12 +73,14 @@ export default {
         title: '',
         publishingYear: ''
       },
-      loading: false
+      loading: false,
+      loadingMovie: false,
     };
   },
   setup() {
     const $q = useQuasar();
     const authStore = useAuthStore();
+    const movieStore = useMovieStore();
     const { t } = useI18n();
 
     const headingClass = $q.screen.lt.md ? 'heading-three' : 'heading-two';
@@ -86,17 +89,16 @@ export default {
       $q,
       headingClass,
       authStore,
+      movieStore,
       t,
     }
   },
   methods: {
     validatePoster(val: File) {
-      if (!val) {
-        return this.t('posterValidation');
-      }
-
-      if (!val.type.includes('image')) {
-        return this.t('posterValidation');
+      if (val) {
+        if (!val.type.includes('image')) {
+          return this.t('posterValidation');
+        }
       }
 
       return true;
@@ -115,7 +117,31 @@ export default {
 
       return true;
     },
-    async onSubmit() {
+    async fetchMovie() {
+      this.loadingMovie = true;
+
+      try {
+        const token = this.authStore.user?.token;
+        const movieId = this.$route.params.id;
+        const response = await this.$api.get(`/movies/${movieId}`, {
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        this.form.title = response.data.data.title;
+        this.form.publishingYear = response.data.data.publishingYear;
+      } catch (error: any) {
+        this.$q.notify({
+          color: 'negative',
+          message: error?.response?.data?.message
+        });
+      } finally {
+        this.loadingMovie = false;
+      }
+    },
+    async onUpdate() {
       const form = this.$refs.form as unknown as { validate: () => boolean };
       if (form.validate()) {
         this.loading = true;
@@ -129,13 +155,19 @@ export default {
         try {
           const formData = new FormData();
 
-          formData.append('poster', this.form.poster as any);
+          formData.append('_method', 'PUT');
+
+          if (this.form.poster) {
+            formData.append('poster', this.form.poster as any);
+          }
+
           formData.append('title', this.form.title);
           formData.append('slug', slug);
           formData.append('publishingYear', this.form.publishingYear);
 
           const token = this.authStore.user?.token;
-          const response = await this.$api.post('/movies', formData, {
+          const movieId = this.$route.params.id;
+          const response = await this.$api.post(`/movies/${movieId}`, formData, {
             headers: {
               'Accept': 'application/json',
               'Authorization': `Bearer ${token}`
@@ -173,6 +205,9 @@ export default {
     navigateToMoviesPage() {
       this.$router.push({ name: 'movies' });
     }
+  },
+  mounted() {
+    this.fetchMovie();
   }
 }
 </script>
@@ -193,6 +228,10 @@ export default {
 .input {
   background-color: $input;
   border-radius: 10px;
+}
+
+.cancel-button {
+  border: 2px solid white;
 }
 
 .file-uploader {

@@ -13,6 +13,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MovieLayout.vue'),
     children: [
       {
+        path: '/login',
+        name: 'login',
+        component: () => import('pages/LoginPage.vue'),
+      },
+      {
         path: '',
         name: 'movies',
         component: () => import('pages/MoviesPage.vue'),
@@ -23,9 +28,9 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/AddMoviePage.vue'),
       },
       {
-        path: 'login',
-        name: 'login',
-        component: () => import('pages/LoginPage.vue'),
+        path: 'edit/:id',
+        name: 'edit',
+        component: () => import('pages/EditMoviePage.vue'),
       },
     ],
   },

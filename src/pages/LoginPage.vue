@@ -4,17 +4,15 @@
       <div :class="headingClass" class="text-white mb-3 q-mb-xl text-center">{{ $t('signin') }}</div>
 
       <q-form @submit="onSubmit" @reset="onReset" ref="form">
-        <q-input input-class="text-white" label-color="white" color="white" filled :label="$t('email')"
-          v-model="form.email" :rules="[validateEmail]" type="email" class="q-mb-md input" dense />
+        <input-component :label="$t('email')" v-model="form.email" :rules="[validateEmail]" :type="'email'" />
 
-        <q-input input-class="text-white" label-color="white" color="white" filled :label="$t('password')"
-          type="password" :rules="[validatePassword]" v-model="form.password" class="q-mb-md input" dense />
+        <input-component :label="$t('password')" v-model="form.password" :rules="[validatePassword]"
+          :type="'password'" />
 
         <q-checkbox v-model="form.remember" keep-color color="primary" :label="$t('rememberMe')"
           class="q-mb-md text-white flex flex-center full-width body-small" />
 
-        <q-btn :loading="loading" :label="$t('login')" type="submit" no-caps color="primary"
-          class="full-width body-regular" />
+        <button-component :loading="loading" :label="$t('login')" :fullWidth="true" />
       </q-form>
 
     </q-col>
@@ -25,9 +23,12 @@
 import { useQuasar } from 'quasar';
 import { useAuthStore } from 'src/stores/auth-store';
 import { useI18n } from 'vue-i18n'
+import ButtonComponent from '../components/ButtonComponent.vue';
+import InputComponent from 'src/components/InputComponent.vue';
 
 export default {
   name: 'LoginPage',
+  components: { ButtonComponent, InputComponent },
   data() {
     return {
       form: {
@@ -128,5 +129,6 @@ export default {
 
 .input {
   background-color: $input;
+  border-radius: 10px;
 }
 </style>
