@@ -120,6 +120,10 @@ export default {
         });
 
         this.$router.push({ name: 'login' });
+
+        this.$nextTick(() => {
+          window.location.reload();
+        });
       } finally {
         this.loading = false;
       }
